@@ -121,6 +121,21 @@
             gap: 20px;
             flex-wrap: wrap;
         }
+
+        .delete-btn {
+            background: #ef4444;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
     </style>
 </head>
 
@@ -135,6 +150,23 @@
             <h3>Add vulnerability</h3>
             <input id="idInput" placeholder="CVE or BDU">
             <button onclick="add()">Add to queue</button>
+        </div>
+
+        <div class="box">
+            <h3>Generate reports</h3>
+
+            <select id="formatSelect">
+                <option value="json">JSON</option>
+                <option value="html">HTML</option>
+                <option value="text">TEXT</option>
+                <option value="docx">DOCX</option>
+            </select>
+
+            <button onclick="generateReports()">
+                Generate all reports
+            </button>
+
+            <div id="generateStatus"></div>
         </div>
 
         <!-- OUTPUT FILES -->
@@ -154,6 +186,68 @@
 
     <script>
 
+        async function generateReports() {
+
+            const format =
+                document.getElementById("formatSelect").value;
+
+            const status =
+                document.getElementById("generateStatus");
+
+            status.innerHTML = "⏳ Generating report...";
+
+            const form = new FormData();
+            form.append("format", format);
+
+            try {
+
+                const response = await fetch("/generate", {
+                    method: "POST",
+                    body: form
+                });
+
+                if (!response.ok) {
+                    throw new Error("Generation failed");
+                }
+
+                // auto download generated file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                const a = document.createElement("a");
+                a.href = url;
+
+                let filename = "report";
+
+                const disposition =
+                    response.headers.get("content-disposition");
+
+                if (disposition?.includes("filename=")) {
+                    filename = disposition
+                        .split("filename=")[1]
+                        .replace(/"/g, "")
+                        .trim();
+                }
+
+                a.download = filename;
+                a.click();
+
+                window.URL.revokeObjectURL(url);
+
+                status.innerHTML =
+                    "✅ Report generated successfully";
+
+                loadFiles();
+
+            } catch (err) {
+
+                status.innerHTML =
+                    "❌ Failed to generate report";
+
+                console.error(err);
+            }
+        }
+
         async function loadFiles() {
             const res = await fetch("/output/files");
             const data = await res.json();
@@ -162,16 +256,57 @@
 
             data.files.forEach(file => {
                 html += `
-                <div class="item">
-                    <span>${file.name} (${file.size} bytes)</span>
-                    <a href="/output/download/${file.name}">
-                        <button class="download-btn">Download</button>
-                    </a>
-                </div>
-                `;
+        <div class="item">
+            <span>
+                ${file.name}
+                (${file.size} bytes)
+            </span>
+
+            <div class="actions">
+
+                <a href="/output/download/${file.name}">
+                    <button class="download-btn">
+                        Download
+                    </button>
+                </a>
+
+                <button
+                    class="delete-btn"
+                    onclick="deleteFile('${file.name}')"
+                >
+                    Delete
+                </button>
+
+            </div>
+        </div>
+        `;
             });
 
             document.getElementById("files").innerHTML = html;
+        }
+
+        async function deleteFile(filename) {
+
+            const confirmed = confirm(
+                `Delete ${filename}?`
+            );
+
+            if (!confirmed) return;
+
+            const res = await fetch(
+                `/output/delete/${filename}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            const data = await res.json();
+
+            if (data.status === "ok") {
+                loadFiles();
+            } else {
+                alert("Failed to delete file");
+            }
         }
 
         async function loadQueue() {

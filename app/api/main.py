@@ -15,12 +15,15 @@ from app.core.queue_manager import (
     remove_item
 )
 
-from app.export.export import save_json, save_text, save_html
+from app.export.export import save_json, save_text, save_html, save_docx
 
 app = FastAPI()
 
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+DATA_DIR = Path("data")
+DATA_DIR.mkdir(exist_ok=True)
 
 
 # ---------------- UI ----------------
@@ -76,19 +79,30 @@ def generate(format: str = Form("json")):
     out_dir.mkdir(parents=True, exist_ok=True)
 
     file_id = uuid4().hex
-    file_path = out_dir / f"report_{file_id}.{format}"
+    extension = "docx" if format == "docx" else format
+
+    file_path = out_dir / f"report_{file_id}.{extension}"
 
     if format == "json":
         save_json(reports, file_path)
+
     elif format == "text":
         save_text(reports, file_path)
-    else:
+
+    elif format == "html":
         save_html(reports, file_path)
+
+    elif format == "docx":
+        save_docx(
+            reports,
+            file_path,
+            template_path=DATA_DIR / "template.docx"
+        )
 
     return FileResponse(
         path=file_path,
         filename=file_path.name,
-        media_type="application/octet-stream"
+        media_type="application/octet-stream",
     )
 
 
@@ -124,3 +138,22 @@ def download_file(filename: str):
         filename=filename,
         media_type="application/octet-stream"
     )
+
+
+@app.delete("/output/delete/{filename}")
+def delete_file(filename: str):
+    out_dir = Path(os.getenv("OUTPUT_DIR", "./output"))
+    file_path = out_dir / filename
+
+    if not file_path.exists():
+        return {
+            "status": "error",
+            "message": "file not found"
+        }
+
+    file_path.unlink()
+
+    return {
+        "status": "ok",
+        "deleted": filename
+    }
