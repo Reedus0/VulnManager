@@ -7,52 +7,144 @@
 
     <style>
         body {
-            font-family: Arial;
-            margin: 30px;
+            font-family: Inter, system-ui, Arial, sans-serif;
+            margin: 0;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        h2 {
+            margin: 0;
+            padding: 20px 30px;
+            background: #111827;
+            border-bottom: 1px solid #1f2937;
         }
 
         .container {
             display: flex;
-            gap: 40px;
+            gap: 20px;
+            padding: 20px 30px;
+            flex-wrap: wrap;
         }
 
         .box {
-            width: 400px;
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 14px;
+            padding: 18px;
+            width: 360px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
         }
 
-        input,
+        h3 {
+            margin-top: 0;
+            font-size: 16px;
+            color: #93c5fd;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #334155;
+            background: #0b1220;
+            color: #e2e8f0;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #3b82f6;
+        }
+
         button {
-            padding: 8px;
-            margin-top: 5px;
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            background: #3b82f6;
+            color: white;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
         }
 
         .item {
             display: flex;
             justify-content: space-between;
-            padding: 5px;
-            border-bottom: 1px solid #ddd;
+            align-items: center;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 10px;
+            background: #0b1220;
+            border: 1px solid #1f2937;
+            transition: 0.2s;
+        }
+
+        .item:hover {
+            border-color: #334155;
+            transform: translateY(-1px);
+        }
+
+        .item span {
+            font-size: 13px;
+            color: #cbd5e1;
+            word-break: break-all;
+        }
+
+        .danger {
+            background: #ef4444;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .danger:hover {
+            background: #dc2626;
+        }
+
+        .download-btn {
+            background: #10b981;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .download-btn:hover {
+            background: #059669;
+        }
+
+        .grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
         }
     </style>
 </head>
 
 <body>
 
-    <h2>Vulnerability Queue Manager</h2>
+    <h2>🛡 Vulnerability Queue Manager</h2>
 
     <div class="container">
 
-        <!-- LEFT: ADD -->
+        <!-- ADD -->
         <div class="box">
             <h3>Add vulnerability</h3>
-
             <input id="idInput" placeholder="CVE or BDU">
-
-            <br>
-
             <button onclick="add()">Add to queue</button>
         </div>
 
-        <!-- RIGHT: QUEUE -->
+        <!-- OUTPUT FILES -->
+        <div class="box">
+            <h3>Output files</h3>
+            <button onclick="loadFiles()">Refresh</button>
+            <div id="files"></div>
+        </div>
+
+        <!-- QUEUE -->
         <div class="box">
             <h3>Queue</h3>
             <div id="queue"></div>
@@ -62,6 +154,26 @@
 
     <script>
 
+        async function loadFiles() {
+            const res = await fetch("/output/files");
+            const data = await res.json();
+
+            let html = "";
+
+            data.files.forEach(file => {
+                html += `
+                <div class="item">
+                    <span>${file.name} (${file.size} bytes)</span>
+                    <a href="/output/download/${file.name}">
+                        <button class="download-btn">Download</button>
+                    </a>
+                </div>
+                `;
+            });
+
+            document.getElementById("files").innerHTML = html;
+        }
+
         async function loadQueue() {
             const res = await fetch("/queue");
             const data = await res.json();
@@ -70,11 +182,11 @@
 
             data.forEach(item => {
                 html += `
-        <div class="item">
-            <span>${item}</span>
-            <button onclick="removeItem('${item}')">X</button>
-        </div>
-        `;
+                <div class="item">
+                    <span>${item}</span>
+                    <button class="danger" onclick="removeItem('${item}')">X</button>
+                </div>
+                `;
             });
 
             document.getElementById("queue").innerHTML = html;
@@ -108,6 +220,7 @@
         }
 
         loadQueue();
+        loadFiles();
 
     </script>
 

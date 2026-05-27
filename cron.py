@@ -69,7 +69,7 @@ def main():
     save_reports(reports)
 
     print("[CRON] clearing queue...")
-    # clear_queue()
+    clear_queue()
 
     print("[CRON] done")
 

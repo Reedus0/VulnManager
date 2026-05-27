@@ -90,3 +90,37 @@ def generate(format: str = Form("json")):
         filename=file_path.name,
         media_type="application/octet-stream"
     )
+
+
+@app.get("/output/files")
+def list_output_files():
+    out_dir = Path(os.getenv("OUTPUT_DIR", "./output"))
+
+    if not out_dir.exists():
+        return {"files": []}
+
+    files = [
+        {
+            "name": f.name,
+            "size": f.stat().st_size
+        }
+        for f in out_dir.iterdir()
+        if f.is_file()
+    ]
+
+    return {"files": files}
+
+
+@app.get("/output/download/{filename}")
+def download_file(filename: str):
+    out_dir = Path(os.getenv("OUTPUT_DIR", "./output"))
+    file_path = out_dir / filename
+
+    if not file_path.exists():
+        return {"error": "file not found"}
+
+    return FileResponse(
+        path=file_path,
+        filename=filename,
+        media_type="application/octet-stream"
+    )
