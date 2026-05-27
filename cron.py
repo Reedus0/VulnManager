@@ -39,6 +39,24 @@ def build_reports():
     return reports
 
 
+def cleanup_old_reports():
+    cutoff = datetime.now().timestamp() - 30 * 24 * 60 * 60
+
+    removed = 0
+
+    for file in OUTPUT_DIR.iterdir():
+        if file.is_file():
+            try:
+                if file.stat().st_mtime < cutoff:
+                    print(f"[CRON] deleting old report: {file.name}")
+                    file.unlink()
+                    removed += 1
+            except Exception as e:
+                print(f"[CRON] cleanup error {file.name}: {e}")
+
+    print(f"[CRON] cleanup finished. removed={removed}")
+
+
 def save_reports(reports):
     timestamp = datetime.now().strftime("%Y-%m-%d")
 
@@ -64,6 +82,9 @@ def save_reports(reports):
 
 
 def main():
+    print("[CRON] cleanup old reports...")
+    cleanup_old_reports()
+
     reports = build_reports()
 
     save_reports(reports)
