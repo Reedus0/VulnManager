@@ -122,13 +122,13 @@ def parse_bdu_html(html_text, requested_id=None):
 
     if report["cvss_score"] is not None:
         if report["cvss_score"] >= 9.0:
-            report["severity"] = "CRITICAL"
+            report["severity"] = "Критический"
         elif report["cvss_score"] >= 7.0:
-            report["severity"] = "HIGH"
+            report["severity"] = "Высокий"
         elif report["cvss_score"] >= 4.0:
-            report["severity"] = "MEDIUM"
+            report["severity"] = "Средний"
         else:
-            report["severity"] = "LOW"
+            report["severity"] = "Низкий"
 
     cvss_values = model.get("cvsses3") or model.get(
         "cvsses4") or model.get("cvsses") or []

@@ -4,11 +4,14 @@ from datetime import datetime
 from app.core.queue_manager import load_queue, clear_queue
 from app.core.cve_loader import fetch_cve
 from app.core.bdu_loader import fetch_bdu
-from app.export.export import save_json, save_text, save_html
+from app.export.export import save_json, save_text, save_html, save_docx
 
 
 OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
+
+DATA_DIR = Path("data")
+DATA_DIR.mkdir(exist_ok=True)
 
 
 def build_reports():
@@ -44,12 +47,15 @@ def save_reports(reports):
     json_path = OUTPUT_DIR / f"{name}.json"
     html_path = OUTPUT_DIR / f"{name}.html"
     text_path = OUTPUT_DIR / f"{name}.txt"
+    docx_path = OUTPUT_DIR / f"{name}.docx"
 
     print("[CRON] saving reports...")
 
     save_json(reports, json_path)
     save_html(reports, html_path)
     save_text(reports, text_path)
+    save_docx(reports, docx_path, template_path=DATA_DIR /
+              "template.docx")
 
     print(f"[CRON] saved:")
     print(json_path)
@@ -63,7 +69,7 @@ def main():
     save_reports(reports)
 
     print("[CRON] clearing queue...")
-    clear_queue()
+    # clear_queue()
 
     print("[CRON] done")
 

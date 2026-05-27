@@ -3,11 +3,10 @@ import requests
 NIST_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
 SEVERITY_LABELS = [
-    (0.0, "NONE"),
-    (0.1, "LOW"),
-    (4.0, "MEDIUM"),
-    (7.0, "HIGH"),
-    (9.0, "CRITICAL"),
+    (0.1, "Низкий"),
+    (4.0, "Средний"),
+    (7.0, "Высокий"),
+    (9.0, "Критический"),
 ]
 
 
@@ -129,11 +128,8 @@ def extract_notes(cve):
     notes = []
     for ref in references:
         url = ref.get("url")
-        source = ref.get("source")
         if not url:
             continue
-        if source:
-            notes.append(f"{source}: {url}")
         else:
             notes.append(url)
     return "\n".join(notes)
@@ -147,7 +143,6 @@ def build_report(vulnerability):
         "severity": severity_label(extract_cvss_score(cve)),
         "cvss_score": extract_cvss_score(cve),
         "description": translate_to_russian(description_en),
-        "description_en": description_en,
         "attack_vector": extract_attack_vector(cve),
         "note": extract_notes(cve),
         "source": "nist",

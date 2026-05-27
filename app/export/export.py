@@ -1,5 +1,8 @@
 from pathlib import Path
 import json
+from datetime import datetime, timedelta
+
+from docxtpl import DocxTemplate
 
 
 def save_json(reports: list[dict], path: Path):
@@ -26,11 +29,9 @@ ERROR: {r['error']}
 
 {r.get('description')}
 
-Дополнительно:
-{r.get('note')}
 """)
 
-    path.write_text("\n\n" + "="*60 + "\n\n".join(blocks), encoding="utf-8")
+    path.write_text("\n\n".join(blocks), encoding="utf-8")
 
 
 def save_html(reports: list[dict], path: Path):
@@ -83,3 +84,36 @@ body { font-family: Arial; }
 """
 
     path.write_text(html, encoding="utf-8")
+
+
+def get_dates():
+    months = {
+        1: "января", 2: "февраля", 3: "марта", 4: "апреля",
+        5: "мая", 6: "июня", 7: "июля", 8: "августа",
+        9: "сентября", 10: "октября", 11: "ноября", 12: "декабря"
+    }
+
+    def format_dt(dt):
+        return f"«{dt.day:02d}» {months[dt.month]} {dt.year}"
+
+    today = datetime.today()
+    week_ago = today - timedelta(days=7)
+
+    return {
+        "today": format_dt(today),
+        "week_ago": format_dt(week_ago)
+    }
+
+
+def save_docx(reports: list, output_path: Path, template_path="template.docx"):
+    doc = DocxTemplate(template_path)
+    dates = get_dates()
+    for r in reports:
+        r["attack_vector"] = r.get("attack_vector", "").replace("/", "/\n")
+    context = {
+        "date_first": dates["week_ago"],
+        "date_last": dates["today"],
+        "reports": reports
+    }
+    doc.render(context)
+    doc.save(output_path)
