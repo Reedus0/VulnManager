@@ -12,12 +12,12 @@ SEVERITY_LABELS = [
 
 def severity_label(cvss_score):
     if cvss_score is None:
-        return "UNKNOWN"
+        return "Неизвестный"
     try:
         score = float(cvss_score)
     except (TypeError, ValueError):
-        return "UNKNOWN"
-    label = "UNKNOWN"
+        return "Неизвестный"
+    label = "Неизвестный"
     for threshold, name in SEVERITY_LABELS:
         if score >= threshold:
             label = name
@@ -87,7 +87,8 @@ def translate_to_russian(text):
 
 def extract_cvss_score(cve):
     metrics = cve.get("metrics", {})
-    for metric_name in ("cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
+    print(metrics)
+    for metric_name in ("cvssMetricV40", "cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
         entries = metrics.get(metric_name, [])
         if not entries:
             continue
@@ -101,7 +102,7 @@ def extract_cvss_score(cve):
 def extract_attack_vector(cve):
     metrics = cve.get("metrics", {})
 
-    for metric_name in ("cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
+    for metric_name in ("cvssMetricV40", "cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
         entries = metrics.get(metric_name, [])
         if not entries:
             continue

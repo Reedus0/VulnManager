@@ -28,10 +28,9 @@ ERROR: {r['error']}
 Критичность: {r.get('severity')}
 
 {r.get('description')}
-
 """)
 
-    path.write_text("\n\n".join(blocks), encoding="utf-8")
+    path.write_text("\n".join(blocks), encoding="utf-8")
 
 
 def save_html(reports: list[dict], path: Path):
