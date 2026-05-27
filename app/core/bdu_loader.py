@@ -112,7 +112,8 @@ def parse_bdu_html(html_text, requested_id=None):
 
     vul_critu = model.get("vul_critu", "")
     if vul_critu:
-        score_match = re.search(r'([0-9]+(?:[\.,][0-9]+)?)', vul_critu)
+        score_match = re.search(
+            r'составляет ([0-9]+(?:[\.,][0-9]+)?)', vul_critu)
         if score_match:
             try:
                 report["cvss_score"] = float(
